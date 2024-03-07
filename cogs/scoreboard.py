@@ -4,6 +4,7 @@ import aiohttp
 import asyncio
 import math
 from datetime import datetime
+import traceback
 
 from models import DBConnection
 
@@ -98,7 +99,7 @@ class ScoreboardInstance:
             except discord.NotFound: await self._resend_message()
             await self._fetch_data()
             await self._update_embed()
-        except Exception as e:
+        except Exception as e:            
             try: await self.display_message(f'Failed to update scoreboard:\n{e.__class__.__name__}: {str(e)}\n\nContact an admin if this keeps occuring.')
             except Exception as e2: print('UpdateError:', e2.__class__.__name__ + ': ' + str(e2))
             raise e
@@ -322,7 +323,9 @@ class ScoreboardList(Sequence):
                 if inst: await inst.update()
             except Exception as e:
                 if not silent:
-                    print('%s - Failed to update %s:\n%s' % (datetime.now(), inst.name, e))
+                    # -- Print out traceback of the error                    
+                    print('Failed to update scoreboard:', e.__class__.__name__ + ': ' + str(e))
+                    traceback.print_exc()                                                            
         
     def get(self, message_id: int, return_index=False):
         result = None
