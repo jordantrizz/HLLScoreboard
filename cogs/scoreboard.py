@@ -146,7 +146,8 @@ class ScoreboardInstance:
                 # Get logs
                 payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(self.match_start), 'server_filter': self.server_filter}
                 if self.match_end: payload['till'] = str(self.match_end)
-                async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
+                # -- GET_LOGS_ENDPOINT aka /api/get_historical_logs doesn't work with GET yet, use post instead
+                async with session.post(self.url+GET_LOGS_ENDPOINT, json=payload) as res:                
                     raw_data = await res.json()
                     if raw_data['error']:
                         raise RCONError(raw_data['error'])

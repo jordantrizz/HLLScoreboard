@@ -57,9 +57,10 @@ class LeaderboardInstance:
             await session.post(self.url+LOGIN_ENDPOINT, json=payload)
             # Get logs
             payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(last_update())}
-            async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
-                logs = (await res.json())['result']
-
+            # -- GET_LOGS_ENDPOINT aka /api/get_historical_logs doesn't work with GET yet, use post instead
+            async with session.post(self.url+GET_LOGS_ENDPOINT, json=payload) as response:
+                logs = await response.json()            
+            
         # Parse logs
         data = dict()
         for log in logs:
