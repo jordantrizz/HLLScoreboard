@@ -97,8 +97,12 @@ class ScoreboardInstance:
         try:
             try: self.message = await self.channel.fetch_message(self._message_id)
             except discord.NotFound: await self._resend_message()
-            await self._fetch_data()
-            await self._update_embed()
+            await self._fetch_data()            
+            # If self has no data, display message even if _data doesn't exists
+            if not hasattr(self, '_data') or not self._data:                
+                await self.display_message('No data found to display.')
+            else:
+                await self._update_embed()
         except Exception as e:            
             try: await self.display_message(f'Failed to update scoreboard:\n{e.__class__.__name__}: {str(e)}\n\nContact an admin if this keeps occuring.')
             except Exception as e2: print('UpdateError:', e2.__class__.__name__ + ': ' + str(e2))
@@ -161,6 +165,11 @@ class ScoreboardInstance:
         
         # Parse logs
         data = dict()
+        # -- Check if log is empty and log that it's empty
+        if not logs:
+            print("No logs found to process.")
+            return
+        
         for log in logs:
             killer = log['player_name']
             victim = log['player2_name']
