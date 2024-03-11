@@ -5,8 +5,18 @@ import asyncio
 import math
 from datetime import datetime
 import traceback
+import sys
 
 from models import DBConnection
+
+# -- Debug print via cli option -d
+if '-d' in sys.argv:
+    def debug_print(*args):
+        print(*args)
+else:
+    def debug_print(*args):
+        pass
+    
 
 EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
 EMBED_ICON = 'https://media.discordapp.net/attachments/729998051288285256/791030109628399647/MiP_-5ea_400x400.png'
@@ -148,15 +158,25 @@ class ScoreboardInstance:
                     try: self.current_map = MAPS[current_map]
                     except KeyError: self.current_map = current_map
                 
-                # Get logs
+                # Server ID starts at 0 versus 1
+                self.server_filter -= 1                
+                # Get logs                
                 payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(self.match_start), 'server_filter': self.server_filter}
+                # -- Print full requests for debugging as curl command make sure json items are double quoted
+                debug_print(f'curl -X POST "{self.url+GET_LOGS_ENDPOINT}" -d \'{payload}\'')
+                                
                 if self.match_end: payload['till'] = str(self.match_end)
-                # -- GET_LOGS_ENDPOINT aka /api/get_historical_logs doesn't work with GET yet, use post instead
+                # -- GET_LOGS_ENDPOINT aka /api/get_historical_logs doesn't work with GET yet, use post instead            
                 async with session.post(self.url+GET_LOGS_ENDPOINT, json=payload) as res:                
                     raw_data = await res.json()
+                    debug_print(raw_data)             
                     if raw_data['error']:
                         raise RCONError(raw_data['error'])
                     logs = raw_data['result']
+                    
+                    print ('Logs fetched')
+                    print(logs)
+                    
 
             except aiohttp.ContentTypeError as e:
                 raise ContentTypeError("Webpage returned unexpected data. Likely the URL is incorrect.\n\nRaw data:\n" + str(e))
@@ -167,7 +187,7 @@ class ScoreboardInstance:
         data = dict()
         # -- Check if log is empty and log that it's empty
         if not logs:
-            print("No logs found to process.")
+            print("No logs found to process, check server ID and get_historical_data for log via curl")
             return
         
         for log in logs:
