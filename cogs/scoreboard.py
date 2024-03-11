@@ -174,7 +174,9 @@ class ScoreboardInstance:
                         raise RCONError(raw_data['error'])
                     logs = raw_data['result']
                     
-                    print ('Logs fetched')
+                    # -- Print message logs retrieved and match_start
+                    print('Logs retrieved:', 'Match start:', self.match_start)
+                    print
                     print(logs)
                     
 
